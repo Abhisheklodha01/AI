@@ -26,6 +26,24 @@ public class AgentConfig {
       - If you do not know something for certain, say so honestly.
       """;
 
+  private static final String EXPENSE_PROMPT = """
+      You extract expenses from the user's text.
+      - Use the date tool to get today's date, then convert words like
+        "today", "yesterday" or "last Monday" into real dates.
+      - Amounts are in Indian rupees.
+      - Pick the closest category. Use OTHER if nothing fits.
+      - Only extract what the user actually said. Never invent expenses.
+      """;
+
+  @Bean
+  public ChatClient expenseParser(ChatClient.Builder builder, DateTimeTools dateTimeTools) {
+    return builder
+        .defaultSystem(EXPENSE_PROMPT)
+        .defaultTools(dateTimeTools)
+        .defaultAdvisors(new TokenUsageAdvisor())
+        .build();
+  }
+
   @Bean
   public ChatClient assistantAgent(ChatClient.Builder builder,
       ChatMemory chatMemory,
@@ -34,7 +52,8 @@ public class AgentConfig {
     return builder
         .defaultSystem(SYSTEM_PROMPT)
         .defaultTools(calculatorTools, dateTimeTools)
-        .defaultAdvisors(new TokenUsageAdvisor(), MessageChatMemoryAdvisor.builder(chatMemory).build(), new SimpleLoggerAdvisor())
+        .defaultAdvisors(new TokenUsageAdvisor(), MessageChatMemoryAdvisor.builder(chatMemory).build(),
+            new SimpleLoggerAdvisor())
         .build();
   }
 
