@@ -4,11 +4,12 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.learn.assistant.advisor.TokenUsageAdvisor;
 import com.learn.assistant.tools.CalculatorTools;
 import com.learn.assistant.tools.DateTimeTools;
 
@@ -33,15 +34,14 @@ public class AgentConfig {
     return builder
         .defaultSystem(SYSTEM_PROMPT)
         .defaultTools(calculatorTools, dateTimeTools)
-        .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build(), new SimpleLoggerAdvisor())
-        .defaultAdvisors(new SimpleLoggerAdvisor())
+        .defaultAdvisors(new TokenUsageAdvisor(), MessageChatMemoryAdvisor.builder(chatMemory).build(), new SimpleLoggerAdvisor())
         .build();
   }
 
   @Bean
-  public ChatMemory chatMemory() {
+  public ChatMemory chatMemory(JdbcChatMemoryRepository jdbcChatMemoryRepository) {
     return MessageWindowChatMemory.builder()
-        .chatMemoryRepository(new InMemoryChatMemoryRepository())
+        .chatMemoryRepository(jdbcChatMemoryRepository)
         .maxMessages(20)
         .build();
   }
