@@ -1,10 +1,13 @@
 package com.learn.agents.config;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+
+import com.learn.agents.tools.SpecialistTools;
 
 @Configuration
 public class AgentConfig {
@@ -17,6 +20,18 @@ public class AgentConfig {
 
     @Value("classpath:prompts/itinerary-agent.st")
     private Resource itineraryPrompt;
+
+    @Value("classpath:prompts/planner-agent.st")
+    private Resource plannerPrompt;
+
+    @Bean
+    public ChatClient plannerAgent(ChatClient.Builder builder, SpecialistTools specialistTools,
+            SyncMcpToolCallbackProvider mcpTools) {
+        return builder
+                .defaultSystem(plannerPrompt)
+                .defaultTools(specialistTools, mcpTools)
+                .build();
+    }
 
     @Bean
     public ChatClient weatherAgent(ChatClient.Builder builder) {
